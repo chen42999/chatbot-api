@@ -1,6 +1,8 @@
 package cn.bugstack.chatbot.api.test;
 
+import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -12,6 +14,8 @@ import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * 单元测试
@@ -23,7 +27,7 @@ public class ApiTest {
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
 
         HttpGet get = new HttpGet("https://api.zsxq.com/v2/groups/28885518425541/topics?scope=all&count=20");
-        get.addHeader("cookie","sensorsdata2015jssdkcross={\"distinct_id\":\"187330f60ca15e-08dfb156bced638-26021f51-2073600-187330f60cbc91\",\"first_id\":\"\",\"props\":{\"$latest_traffic_source_type\":\"直接流量\",\"$latest_search_keyword\":\"未取到值_直接打开\",\"$latest_referrer\":\"\"},\"identities\":\"eyIkaWRlbnRpdHlfY29va2llX2lkIjoiMTg3MzMwZjYwY2ExNWUtMDhkZmIxNTZiY2VkNjM4LTI2MDIxZjUxLTIwNzM2MDAtMTg3MzMwZjYwY2JjOTEifQ==\",\"history_login_id\":{\"name\":\"\",\"value\":\"\"},\"$device_id\":\"187330f60ca15e-08dfb156bced638-26021f51-2073600-187330f60cbc91\"}; zsxq_access_token=30834553-1D2F-5139-7A34-4DDA33A09813_04AED0B1A68E3535; zsxqsessionid=1803ff431d14007a33130a94c247c106; abtest_env=beta");
+        get.addHeader("cookie", "sensorsdata2015jssdkcross={\"distinct_id\":\"187330f60ca15e-08dfb156bced638-26021f51-2073600-187330f60cbc91\",\"first_id\":\"\",\"props\":{\"$latest_traffic_source_type\":\"直接流量\",\"$latest_search_keyword\":\"未取到值_直接打开\",\"$latest_referrer\":\"\"},\"identities\":\"eyIkaWRlbnRpdHlfY29va2llX2lkIjoiMTg3MzMwZjYwY2ExNWUtMDhkZmIxNTZiY2VkNjM4LTI2MDIxZjUxLTIwNzM2MDAtMTg3MzMwZjYwY2JjOTEifQ==\",\"history_login_id\":{\"name\":\"\",\"value\":\"\"},\"$device_id\":\"187330f60ca15e-08dfb156bced638-26021f51-2073600-187330f60cbc91\"}; zsxq_access_token=30834553-1D2F-5139-7A34-4DDA33A09813_04AED0B1A68E3535; zsxqsessionid=1803ff431d14007a33130a94c247c106; abtest_env=beta");
         get.addHeader("Content-Type", "application/json;charset=UTF-8");
 
         CloseableHttpResponse response = httpClient.execute(get);
@@ -54,6 +58,44 @@ public class ApiTest {
 
         StringEntity stringEntity = new StringEntity(paramJson, ContentType.create("text/json", "UTF-8"));
         post.setEntity(stringEntity);
+
+        CloseableHttpResponse response = httpClient.execute(post);
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            String res = EntityUtils.toString(response.getEntity());
+            System.out.println(res);
+        } else {
+            System.out.println(response.getStatusLine().getStatusCode());
+        }
+    }
+
+
+    @Test
+    public void test_chatGPT() throws IOException {
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost("https://api.openai.com/v1/chat/completions");
+        post.addHeader("Content-Type", "application/json");
+        post.addHeader("Authorization", "Bearer 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");
+//        帮我用java写一个红黑树的代码并写上每段代码的注释
+        String paramJson = "{\n" +
+                "     \"model\": \"gpt-3.5-turbo\",\n" +
+                "     \"messages\": [{\"role\": \"user\", \"content\": \"帮我用java写一个红黑树的代码并写上每段代码的注释\"}],\n" +
+                "     \"temperature\": 0.7\n" +
+                "   }";
+
+        StringEntity stringEntity = new StringEntity(paramJson, ContentType.create("text/json", "UTF-8"));
+        post.setEntity(stringEntity);
+
+        // 设置代理
+        String proxyIp = "127.0.0.1";
+        int proxyPort = 7890;
+        HttpHost httpHost = new HttpHost(proxyIp, proxyPort);
+
+        post.setConfig(
+                RequestConfig.custom()
+                .setProxy(httpHost)
+                .build()
+        );
+
         CloseableHttpResponse response = httpClient.execute(post);
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
             String res = EntityUtils.toString(response.getEntity());
